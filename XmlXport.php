@@ -20,13 +20,20 @@ class XmlXport {
     private $format;
 
     /**
+     * The xml string
+     */
+    private $xml;
+
+    /**
      * Constructor
      * 
      * @param mixed object or array containing the data
+     * @param string optional xml header
      */
-    public function __construct($data) {
+    public function __construct($data, $xmlHeader = '<?xml version="1.0" encoding="utf-8"?>') {
         $this->checkFormat($data);
         $this->data = $data;
+        $this->xml = $xmlHeader;
     }
 
     /**
@@ -46,7 +53,21 @@ class XmlXport {
         }
     }
 
-    public function getAsXmlString() {
+    public function getString() {
+        header ("Content-Type:text/xml");
+        echo $this->xml . '<dataobject>' . $this->parseData($this->data) . '</dataobject>';
+    }
+
+    private function parseData($data) {
+        $xml = '';
+        foreach ($data as $key => $value) {
+            if (is_array($value) || is_object($value)) {
+                $xml .= '<' . $key . '>' . $this->parseData($value) . '</' . $key . '>';
+            } else {
+                $xml .= '<' . $key . '>' . $value . '</' . $key . '>';
+            }
+        }
+        return $xml;
     }
 
 }
